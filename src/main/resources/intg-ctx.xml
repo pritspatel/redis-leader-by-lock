@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
+       xmlns:int="http://www.springframework.org/schema/integration"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/integration/jdbc http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd">
+
+    <int-jdbc:inbound-channel-adapter
+            id="jdbcPoller"
+            auto-startup="false"
+            channel="msgChannel"
+            query="SELECT * FROM PROCESSING WHERE STATUS='READY'"
+            data-source="dataSource"
+            max-rows-per-poll="1"
+            update-per-row="true"
+            update="UPDATE PROCESSING SET STATUS='PROCESSING'"
+            role="cluster"
+    >
+        <int:poller fixed-delay="2000">
+
+        </int:poller>
+    </int-jdbc:inbound-channel-adapter>
+    <int:channel id="msgChannel"/>
+    <int:logging-channel-adapter channel="msgChannel" level="INFO"/>
+
+
+    <int:channel id="systemMsgChannel"/>
+    <int:control-bus auto-startup="true" id="systemControlBus" input-channel="systemMsgChannel"/>
+    <!-- <int:channel id="busOutputChannel"/>
+     <int:logging-channel-adapter id="busOutput" channel="busOutputChannel" level="INFO"/>-->
+</beans>
