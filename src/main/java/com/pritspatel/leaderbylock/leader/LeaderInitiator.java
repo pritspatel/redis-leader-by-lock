@@ -2,6 +2,8 @@ package com.pritspatel.leaderbylock.leader;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -30,9 +32,16 @@ public class LeaderInitiator {
 		jedis.set(LEADER_LOCK, "" + myApplicationId, "NX", "PX", LOCK_TIMEOUT);
 		if (this.isLeader()) {
 			System.out.println("["+ myApplicationId +"] is Leader");
+			Message<String> msg = MessageBuilder.withPayload("@jdbcPoller.start()").build();
+
+			messageChannel.send(msg);
 
 		} else {
 			System.out.println("["+ myApplicationId +"] is on stand by. ");
+			Message<String> msg = MessageBuilder.withPayload("@jdbcPoller.start()").build();
+
+			messageChannel.send(msg);
+			System.out.println("Poller shutdown");
 		}
 	}
 	
