@@ -24,6 +24,8 @@
     <int:logging-channel-adapter channel="msgChannel" level="INFO"/>
 
 
+    <int:gateway service-interface="com.pritspatel.leaderbylock.control.ControlGateway" default-request-channel="systemMsgChannel" />
+
     <int:channel id="systemMsgChannel"/>
     <int:control-bus auto-startup="true" id="systemControlBus" input-channel="systemMsgChannel"/>
     <!-- <int:channel id="busOutputChannel"/>

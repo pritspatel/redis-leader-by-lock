@@ -1,10 +1,7 @@
 package com.pritspatel.leaderbylock.leader;
 
+import com.pritspatel.leaderbylock.control.ControlGateway;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.integration.support.MessageBuilder;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -19,8 +16,7 @@ public class LeaderInitiator {
 	private String myApplicationId;
 
 	@Autowired
-	@Qualifier("systemMsgChannel")
-	private MessageChannel messageChannel;
+	private ControlGateway controlGateway;
 
 	public LeaderInitiator(Jedis jedis, String myApplicationId) {
 		this.jedis = jedis;
@@ -32,16 +28,22 @@ public class LeaderInitiator {
 		jedis.set(LEADER_LOCK, "" + myApplicationId, "NX", "PX", LOCK_TIMEOUT);
 		if (this.isLeader()) {
 			System.out.println("["+ myApplicationId +"] is Leader");
-			Message<String> msg = MessageBuilder.withPayload("@jdbcPoller.start()").build();
 
-			messageChannel.send(msg);
+			Boolean isRunning = controlGateway.sendCommand("@jdbcPoller.isRunning()");
+			/*System.out.println("isRunning : " + isRunning);
+			if(!isRunning){
+				controlGateway.sendCommand("@jdbcPoller.start()");
+				System.out.println("Poller started ...");
+			}*/
 
 		} else {
 			System.out.println("["+ myApplicationId +"] is on stand by. ");
-			Message<String> msg = MessageBuilder.withPayload("@jdbcPoller.start()").build();
 
-			messageChannel.send(msg);
-			System.out.println("Poller shutdown");
+			/*Boolean isRunning = controlGateway.sendCommand("@jdbcPoller.isRunning()");
+			if(isRunning){
+				controlGateway.sendCommand("@jdbcPoller.stop()");
+				System.out.println("POLLER SHUTDOWN...");
+			}*/
 		}
 	}
 	
